@@ -22,16 +22,16 @@
 
 using namespace std;
 
-string readData(string filename){
-    string data;
+vector<string> readData(string filename){
+    vector<string> data;
     string l;
     ifstream infile(filename);
     if(infile.is_open()){
         while(infile >> l){
-            data += l+";";
+            data.push_back(l);
         }
     }
-    return "HospitalB:" + data;
+    return data;
 }
 
 int main(void) {
@@ -65,19 +65,27 @@ int main(void) {
     socklen_t len = sizeof(tcp_caddr);
     getsockname(tcp_fd, (struct sockaddr *) &tcp_caddr, &len);
     inet_ntop(AF_INET, &tcp_caddr.sin_addr, IPaddr, sizeof(IPaddr));
-    int PortHA = ntohs(tcp_caddr.sin_port);
+    int PortHB = ntohs(tcp_caddr.sin_port);
 
-    cout << "<Hospital B> has TCP port " << PortHA << " and IP address " << IPaddr << " for Phase 1" << endl;
+    cout << "<Hospital B> has TCP port " << PortHB << " and IP address " << IPaddr << " for Phase 1" << endl;
 
     cout << "<Hospital B> is now connected to the admission office" << endl;
 
-    string HospitalB_information = readData("HospitalB.txt");
-    strcpy(buf, HospitalB_information.c_str());   
-    if ((numbyte = send(tcp_fd, buf, MAXDATASIZE-1, 0)) > 0) {      
-        cout << "<Hospital B> has sent <" << HospitalB_information << "> to the agent" << endl;
-        sleep(1);
-    }
+    vector<string> HospitalB_information = readData("HospitalB.txt");
 
+    string str = "HospitalB";
+    strcpy(buf, str.c_str());
+    if ((numbyte = send(tcp_fd, buf, MAXDATASIZE-1, 0)) > 0) {
+        sleep(1);
+    } 
+
+    for (int i = 0; i < Num_of_Departments; i++){
+        strcpy(buf, HospitalB_information[i].c_str());   
+        if ((numbyte = send(tcp_fd, buf, MAXDATASIZE-1, 0)) > 0) {      
+            cout << "<Hospital B> has sent <" << buf << "> to the agent" << endl;
+            sleep(1);
+        }
+    }
     cout << "Updating the health center is done for <HospitalB>" << endl;  
     cout << "End of Phase 1 for <HospitalB>" << endl; 
 }

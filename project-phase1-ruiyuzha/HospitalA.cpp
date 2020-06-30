@@ -22,16 +22,16 @@
 
 using namespace std;
 
-string readData(string filename){
-    string data;
+vector<string> readData(string filename){
+    vector<string> data;
     string l;
     ifstream infile(filename);
     if(infile.is_open()){
         while(infile >> l){
-            data += l+";";
+            data.push_back(l);
         }
     }
-    return "HospitalA:" + data;
+    return data;
 }
 
 int main(void) {
@@ -71,11 +71,20 @@ int main(void) {
 
     cout << "<Hospital A> is now connected to the admission office" << endl;
 
-    string HospitalA_information = readData("HospitalA.txt");
-    strcpy(buf, HospitalA_information.c_str());   
-    if ((numbyte = send(tcp_fd, buf, MAXDATASIZE-1, 0)) > 0) {      
-        cout << "<Hospital A> has sent <" << HospitalA_information << "> to the agent" << endl;
+    vector<string> HospitalA_information = readData("HospitalA.txt");
+
+    string str = "HospitalA";
+    strcpy(buf, str.c_str());
+    if ((numbyte = send(tcp_fd, buf, MAXDATASIZE-1, 0)) > 0) {
         sleep(1);
+    } 
+
+    for (int i = 0; i < Num_of_Departments; i++){
+        strcpy(buf, HospitalA_information[i].c_str());   
+        if ((numbyte = send(tcp_fd, buf, MAXDATASIZE-1, 0)) > 0) {      
+            cout << "<Hospital A> has sent <" << buf << "> to the agent" << endl;
+            sleep(1);
+        }
     }
 
     cout << "Updating the health center is done for <HospitalA>" << endl;  
