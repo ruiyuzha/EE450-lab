@@ -24,9 +24,18 @@ using namespace std;
 int tcp_fd;
 struct sockaddr_in tcp_saddr, tcp_caddr;
 
-void create_tcp_server(){
+void saveData(string Hospital_information){
+    ofstream fileout("Healthcenter.txt", ios::out | ios::app);
+    fileout << Hospital_information << endl;
+    fileout.close();
+}
+
+void TCP_recieve_hospital_information(){
     char IPaddr[INET_ADDRSTRLEN];
     struct hostent *he;
+    int new_fd;
+    char buf[MAXDATASIZE];
+    int numbytes;
     
     /* Create a socket */
     tcp_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -55,18 +64,6 @@ void create_tcp_server(){
    strcpy(IPaddr, inet_ntoa(*(struct in_addr*)he->h_addr));
    
    cout << "The health center has TCP port " << Healthcenter_TCP_PORT << " and IP address " << IPaddr << endl;
-}
-
-void saveData(string Hospital_information){
-    ofstream fileout("./Healthcenter.txt");
-    fileout << Hospital_information << endl;
-    fileout.close();
-}
-
-void receive_from_hospitals() {
-    int new_fd;
-    char buf[MAXDATASIZE];
-    int numbytes;
 
     socklen_t clilen = sizeof(tcp_fd);
 
@@ -76,11 +73,18 @@ void receive_from_hospitals() {
         exit(1);
     }
 
-    if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) > 0) {  
-        saveData(string(buf));
-        string hospital = string(buf).substr(0,9);
-        cout << "Recieved the department list from <" << hospital << ">" << endl;
+    string str = "";
+    for (int i = 0; i < Num_of_Departments+1; i++){
+        if ((numbytes = recv(new_fd, buf, MAXDATASIZE-1, 0)) > 0) {  
+            str += buf;
+            sleep(1);
+        }
     }
+
+    saveData(string(str));
+    string hospital = string(str).substr(0,9);
+    cout << "Recieved the department list from <" << hospital << ">" << endl;
+
     sleep(1);
     cout << "End of Phase I for the health center" << endl;
     close(tcp_fd);
@@ -88,8 +92,7 @@ void receive_from_hospitals() {
 }
 
 int main(void) {
-    create_tcp_server();
-    receive_from_hospitals();
+    TCP_recieve_hospital_information();
     
     return 0;
 }
