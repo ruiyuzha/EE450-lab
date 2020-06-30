@@ -1,0 +1,2 @@
+Symptom:5
+Interest1:C1
