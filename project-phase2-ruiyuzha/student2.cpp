@@ -15,7 +15,7 @@
 #include <string>
 
 #define Healthcenter_TCP_PORT 6955 //6000 + 955 (USCID: 4057818955)
-#define Student1_UDP_PORT 22355 //21400 + 955 (USCID: 4057818955)
+#define Student2_UDP_PORT 22455 //21500 + 955 (USCID: 4057818955)
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 
 using namespace std;
@@ -33,11 +33,11 @@ string readData(string filename){
             data += l;
         }
     }
-    return "student1" + data;
+    return "student2" + data;
 }
 
 void TCP_send_student_information(){
-    int numbyte;  
+    int numbyte;    
     char IPaddr[INET_ADDRSTRLEN];
     char buf[MAXDATASIZE];
        
@@ -65,18 +65,18 @@ void TCP_send_student_information(){
     socklen_t len = sizeof(tcp_caddr);
     getsockname(tcp_fd, (struct sockaddr *) &tcp_caddr, &len);
     inet_ntop(AF_INET, &tcp_caddr.sin_addr, IPaddr, sizeof(IPaddr));
-    int PortS1 = ntohs(tcp_caddr.sin_port);
+    int PortS2 = ntohs(tcp_caddr.sin_port);
 
-    cout << "<Student 1> has TCP port " << PortS1 << " and IP address " << IPaddr << endl;
+    cout << "<Student 2> has TCP port " << PortS2 << " and IP address " << IPaddr << endl;
 
-    string student1_information = readData("student1.txt");
+    string student2_information = readData("student2.txt");
 
-    strcpy(buf, student1_information.c_str());
+    strcpy(buf, student2_information.c_str());
     if ((numbyte = send(tcp_fd, buf, MAXDATASIZE-1, 0)) > 0) {
         sleep(1);
     }
 
-    cout << "Completed sending application for <" <<  student1_information.substr(0,8) << ">" << endl;
+    cout << "Completed sending application for <" <<  student2_information.substr(0,8) << ">" << endl;
     sleep(1);
 }
 
@@ -95,7 +95,7 @@ void UDP_recieve_application_result(){
    memset(&udp_caddr, '\0', sizeof(udp_caddr)); // zero structure out
    udp_saddr.sin_family = AF_INET; // match the socket() call
    udp_saddr.sin_addr.s_addr = htonl(INADDR_ANY); // bind to any local address
-   udp_saddr.sin_port = htons(Student1_UDP_PORT); // specify port to listen on
+   udp_saddr.sin_port = htons(Student2_UDP_PORT); // specify port to listen on
 
    if ((he = gethostbyname("www.google.com")) == NULL) {
        perror("gethostbyname");
@@ -106,13 +106,13 @@ void UDP_recieve_application_result(){
    }
    strcpy(IPaddr, inet_ntoa(*(struct in_addr*)he->h_addr));
    
-   cout << "<Student1> has UDP port " << Student1_UDP_PORT << " and IP address " << IPaddr << endl;
+   cout << "<Student2> has UDP port " << Student2_UDP_PORT << " and IP address " << IPaddr << endl;
 
    char buf[MAXDATASIZE];
 
    socklen_t clilen = sizeof(udp_fd);
    recvfrom(udp_fd, buf, MAXDATASIZE, 0, (struct sockaddr *) &udp_caddr, &clilen);
-   cout << "<Student1> has received the application result, the result is:" << buf << endl;
+   cout << "<Student2> has received the application result, the result is:" << buf << endl;
    sleep(1); 
    close(udp_fd);
 }
